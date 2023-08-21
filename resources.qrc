@@ -1,0 +1,7 @@
+<RCC>
+    <qresource prefix="/">
+	<file>qt-wspr.ico</file>
+        <file>AUTHORS</file>
+        <file>COPYING</file>
+    </qresource>
+</RCC>
