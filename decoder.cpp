@@ -33,7 +33,7 @@
 
 	decoder::~decoder	() {}
 //
-//	merely collecitng data for the thread to run
+//	merely collecting data for the thread to run
 void	decoder::goDecoding	(struct decoder_options options) {
 	this -> decOptions	= options;
 	passBuffer	-> getDataFromBuffer (buffer,
@@ -73,6 +73,7 @@ int	n_results;
 	   samples_i [i] *= maxSig;
 	   samples_q [i] *= maxSig;
 	}
+
 	time_t unixtime;
 	time (&unixtime);
 	unixtime = unixtime - 120 + 1;

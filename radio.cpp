@@ -68,7 +68,7 @@
 	                                                   1000, 192000, 16),
 	                                    decimator_1 (11, -1000,
 	                                                   1000, 12000, 4),
-	                                    decimator_2 (5,  -150,
+	                                    decimator_2 (9,  -150,
 	                                                      150, 3000, 8),
 	                                    inputBuffer (32 * 32768),
 	                                    passBuffer (16 * 32768) {
@@ -106,19 +106,14 @@ struct timeval lTime;
 
 	changeRequest. state	= false;
 	changeRequest. freqChange	= false;
-	connect (hfScope,
-	         SIGNAL (clickedwithLeft (int)),
-	         this,
-	         SLOT (adjustFrequency (int)));
+	connect (hfScope, SIGNAL (clickedwithLeft (int)),
+	         this, SLOT (adjustFrequency (int)));
 	connect (hfScope,
 	         SIGNAL (clickedwithRight (int)),
 	         this, SLOT (switch_hfViewMode (int)));
-	connect (lfScope,
-	         SIGNAL (clickedwithLeft (int)),
-	         this,
-	         SLOT (adjustFrequency (int)));
-	connect (lfScope,
-	         SIGNAL (clickedwithRight (int)),
+	connect (lfScope, SIGNAL (clickedwithLeft (int)),
+	         this, SLOT (adjustFrequency (int)));
+	connect (lfScope, SIGNAL (clickedwithRight (int)),
 	         this, SLOT (switch_lfViewMode (int)));
 	connect (mouse_Inc, SIGNAL (valueChanged (int)),
 	         this, SLOT (set_mouseIncrement (int)));
