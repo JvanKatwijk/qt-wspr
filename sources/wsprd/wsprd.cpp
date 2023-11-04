@@ -35,12 +35,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
-#ifndef	__KISS__
-#include <fftw3.h>
-#else
-#include        "../kiss/kiss_fft.h"
-#endif
-
+#include	"fft-handler.h"
 
 #include "./wsprd.h"
 #include "./fano.h"
@@ -50,18 +45,6 @@
 #include "./metric_tables.h"
 
 #include	"constants.h"
-
-#ifndef	__KISS__
-/* Possible PATIENCE options: F
-   FTW_ESTIMATE,
-   FFTW_ESTIMATE_PATIENT,
-   FFTW_MEASURE,
-   FFTW_PATIENT,
-   FFTW_EXHAUSTIVE
-*/
-#define PATIENCE FFTW_ESTIMATE
-fftwf_plan PLAN;
-#endif
 
 int32_t printdata = 0;
 
@@ -99,15 +82,23 @@ void sync_and_demodulate(float *id,
 	                  float *sync,
 	                  int   mode) {
 
-    float i0[NSYM], q0[NSYM], 
-	   i1[NSYM], q1[NSYM],
-	   i2[NSYM], q2[NSYM],
-	   i3[NSYM], q3[NSYM];
-    float c0[NSPERSYM], s0[NSPERSYM],
-	   c1[NSPERSYM], s1[NSPERSYM],
-	   c2[NSPERSYM], s2[NSPERSYM],
-	   c3[NSPERSYM], s3[NSPERSYM];
-    float fsymb[NSYM];
+float *i0	= new float [NSYM];
+float *q0	= new float [NSYM];
+float *i1	= new float [NSYM];
+float *q1	= new float [NSYM];
+float *i2	= new float [NSYM];
+float *q2	= new float [NSYM];
+float *i3	= new float [NSYM];
+float *q3	= new float [NSYM];
+float *c0	= new float [NSPERSYM];
+float *s0	= new float [NSPERSYM];
+float *c1	= new float [NSPERSYM];
+float *s1	= new float [NSPERSYM];
+float *c2	= new float [NSPERSYM];
+float *s2	= new float [NSPERSYM];
+float *c3	= new float [NSPERSYM];
+float *s3	= new float [NSPERSYM];
+float *fsymb	= new float [NSYM];
 
     float fbest = 0.0,
 	   fsum  = 0.0,
@@ -244,9 +235,26 @@ void sync_and_demodulate(float *id,
 	         fsymb[i] = -128.0;
 	       symbols[i] = fsymb[i] + 128;
 	   }
-	    return;
+	    goto L1;
 	}
-	return;
+L1:
+delete [] 	i0;
+delete []	q0;
+delete []	i1;
+delete []	q1;
+delete [] 	i2;
+delete []	q2;
+delete []	i3;
+delete []	q3;
+delete []	c0;
+delete []	s0;
+delete []	c1;
+delete []	s1;
+delete []	c2;
+delete []	s2;
+delete []	c3;
+delete []	s3;
+delete []	fsymb;
 }
 
 /* symbol-by-symbol signal subtraction */
@@ -258,7 +266,8 @@ void	subtract_signal (float *id,
 	                  float drift,
 	                  unsigned char *channel_symbols) {
 
-float c0[NSPERSYM], s0[NSPERSYM];
+float  *c0 = new float [NSPERSYM];
+float  *s0 = new float [NSPERSYM];
 
 	for (int i = 0; i < NSYM; i++) {
 	   float fp = f0 + ((float)drift / 2.0) *
@@ -300,6 +309,9 @@ float c0[NSPERSYM], s0[NSPERSYM];
 	       }
 	    }
 	}
+	
+delete	[]	c0;
+delete	[]	s0;
 }
 
 /* Subtract the coherent component of a signal */
@@ -313,12 +325,19 @@ void	subtract_signal2 (float *id, float *qd,
 float phi = 0.0;
 const int nfilt = 360;  // nfilt must be even number.
 
-float	refi [SIGNAL_SAMPLES] = {0},
-	refq [SIGNAL_SAMPLES] = {0},
-	 ci   [SIGNAL_SAMPLES] = {0},
-	cq   [SIGNAL_SAMPLES] = {0},
-	cfi  [SIGNAL_SAMPLES] = {0},
-	cfq  [SIGNAL_SAMPLES]  = {0};
+float	*refi	= new float [SIGNAL_SAMPLES];
+float	*refq	= new float [SIGNAL_SAMPLES];
+float	*ci	= new float [SIGNAL_SAMPLES];
+float	*cq	= new float [SIGNAL_SAMPLES];
+float	*cfi	= new float [SIGNAL_SAMPLES];
+float	*cfq	= new float [SIGNAL_SAMPLES];
+
+memset	(refi, 0, SIGNAL_SAMPLES * sizeof (float));
+memset	(refq, 0, SIGNAL_SAMPLES * sizeof (float));
+memset	(ci,   0, SIGNAL_SAMPLES * sizeof (float));
+memset	(cq,   0, SIGNAL_SAMPLES * sizeof (float));
+memset	(cfi,  0, SIGNAL_SAMPLES * sizeof (float));
+memset	(cfq,  0, SIGNAL_SAMPLES * sizeof (float));
 
 /****************************************************************************
      Measured signal:                    s(t) = a(t) * exp (j * theta(t))
@@ -406,10 +425,18 @@ float	refi [SIGNAL_SAMPLES] = {0},
 	      qd[k] = qd[k] - (cfi[j] * refq[i] + cfq[j] * refi[i]) / norm;
 	   }
 	}
+
+delete	[]	refi;
+delete	[]	refq;
+delete	[]	ci;
+delete	[]	cq;
+delete	[]	cfi;
+delete	[]	cfq;
 	return;
 }
 
-int	wspr_decode (float  *idat, float  *qdat, 
+int	wspr_decode (fftHandler *fft,
+	             float  *idat, float  *qdat, 
 	             int    samples,
 	             struct decoder_options options, 
 	             struct decoder_results *decodes,
@@ -446,21 +473,27 @@ uint32_t metric, cycles, maxnp;
 struct cand candidates[200];
 
 //	Decoded candidate 
-uint8_t symbols[NBITS * 2] = {0};
-uint8_t decdata[(NBITS + 7) / 8] = {0};
-int8_t  message[12] = {0};
+uint8_t *symbols	= new uint8_t [NBITS * 2];
+uint8_t *decdata	= new uint8_t [(NBITS + 7) / 8];
+int8_t 	*message	= new int8_t [12];
 
+	memset (symbols, 0, NBITS + 2);
+	memset (decdata, 0, (NBITS + 7) / 8);
+	memset (message, 0, 12 * sizeof (int8_t));
     /* Results */
 char  callsign [13]	= {0};
 char  call_loc_pow [23]	= {0};
 char  call [13]		= {0};
 char  loc [7]		= {0};
 char  pwr [3]		= {0};
-float allfreqs [100]	= {0};
+float *allfreqs		= new float [100];
 char  allcalls[100][13] = {0};
 
+	memset (allfreqs, 0, 100 * sizeof (float));
 //	Setup metric table 
-int32_t mettab [2][256];
+int32_t *mettab [2];
+	mettab [0]	= new int32_t [256];
+	mettab [1]	= new int32_t [256];
 float bias = 0.45;
 
 	for (int i = 0; i < 256; i++) {
@@ -471,8 +504,11 @@ float bias = 0.45;
 //	Setup/Load hash tables 
 FILE  *fhash;
 int   nh;
-char  hashtab [32768 * 13] = {0};
-char  loctab [32768 * 5] = {0};
+char *hashtab	= new char [32768 * 13];
+char *loctab	= new char [32768 * 5];
+
+	memset (hashtab, 0, 32768 * 13);
+	memset (loctab,  0, 32768 * 5 );
 
 	if (options. usehashtable) {
 	   char line [80], hcall [12], hgrid[5];;
@@ -487,30 +523,6 @@ char  loctab [32768 * 5] = {0};
 	      fclose(fhash);
 	   }
 	}
-
-#ifndef	__KISS__
-//	FFT buffer (512 bins) 
-	fftwf_complex *fftin, *fftout;
-	fftin  = (fftwf_complex *)fftwf_malloc(sizeof(fftwf_complex) * 512);
-	fftout = (fftwf_complex *)fftwf_malloc(sizeof(fftwf_complex) * 512);
-	PLAN   = fftwf_plan_dft_1d (512, fftin, fftout, FFTW_FORWARD, PATIENCE);
-
-//	Recover FFTW optimization settings 
-	FILE *fp_fftw_wisdom_file;
-// Open FFTW wisdom
-	if ((fp_fftw_wisdom_file = fopen ("fftw_wisdom.dat", "r"))) { 
-	   fftwf_import_wisdom_from_file (fp_fftw_wisdom_file);
-	   fclose (fp_fftw_wisdom_file);
-	}
-#else
-	kiss_fft_cfg    plan;
-        kiss_fft_cpx    *fftVector_in;
-        kiss_fft_cpx    *fftVector_out;
-
-        fftVector_in    = new kiss_fft_cpx [512];
-        fftVector_out   = new kiss_fft_cpx [512];
-        plan            = kiss_fft_alloc (512, true, nullptr, nullptr);
-#endif
 
 //	Hann function 
 	float hann [512];
@@ -545,20 +557,11 @@ char  loctab [32768 * 5] = {0};
 //	Load samples 
 	      for (int j = 0; j < 512; j++) {
 	         int k = i * 128 + j;
-#ifndef	__KISS__
-	         fftin [j] [0] = idat [k] * hann [j];
-	         fftin [j] [1] = qdat [k] * hann [j];
-#else
-	         fftVector_in [j]. r = idat [k] * hann [j];
-                 fftVector_in [j]. i = qdat [k] * hann [j];
-#endif
+                 fft -> fftVector_in [j]. r = idat [k] * hann [j];
+                 fft -> fftVector_in [j]. i = qdat [k] * hann [j];
 	      }
 
-#ifndef	__KISS__
-	      fftwf_execute (PLAN);
-#else
-	      kiss_fft (plan, fftVector_in, fftVector_out);
-#endif
+	      fft -> fft ();
 
 //	Recover frequencies 
 	      for (int j = 0; j < 512; j++) {
@@ -567,13 +570,11 @@ char  loctab [32768 * 5] = {0};
 	            k = k - 512;
 //
 //	re * re + im * im
-#ifndef	__KISS__
-	         ps [j][i] = fftout [k][0] * fftout [k][0] +
-	                                   fftout [k][1] * fftout [k][1];
-#else
-	         ps [j][i] = fftVector_out [k]. r * fftVector_out [k]. r +
-                             fftVector_out [k]. i * fftVector_out [k]. i;
-#endif
+
+	      ps [j][i] = fft -> fftVector_out [k]. r *
+                                   fft -> fftVector_out  [k]. r +
+                             fft -> fftVector_out [k]. i *
+                                   fft -> fftVector_out [k]. i;
 	      }
 	   }
 
@@ -674,10 +675,10 @@ char  loctab [32768 * 5] = {0};
 	      }
 	   }
 
-	   for (int i = 0; i < nr_candidates; i ++)
-	      fprintf (stderr, "Kand %d on freq %f with snr %f\n",
-	                         i, candidates [i]. freq,
-	                            candidates [i]. snr);
+//	   for (int i = 0; i < nr_candidates; i ++)
+//	      fprintf (stderr, "Kand %d on freq %f with snr %f\n",
+//	                         i, candidates [i]. freq,
+//	                            candidates [i]. snr);
 
 //	Make coarse estimates of shift (DT), freq, and drift
 //	Look for time offsets up to +/- 8 symbols (about +/- 5.4 s) relative
@@ -901,22 +902,6 @@ char  loctab [32768 * 5] = {0};
 //	Return number of spots to the calling fct */
 	*n_results = uniques;
 
-#ifndef	__KISS__
-	fftwf_free (fftin);
-	fftwf_free (fftout);
-
-	if ((fp_fftw_wisdom_file = fopen ("fftw_wisdom.dat", "w"))) {
-	   fftwf_export_wisdom_to_file (fp_fftw_wisdom_file);
-	   fclose (fp_fftw_wisdom_file);
-	}
-
-	fftwf_destroy_plan(PLAN);
-#else
-        delete  fftVector_in;
-        delete  fftVector_out;
-        kiss_fft_cleanup ();
-#endif
-
 	if (options. usehashtable) {
 	    fhash = fopen ("hashtable. txt", "w");
 	   for (int i = 0; i < 32768; i++) {
@@ -926,5 +911,10 @@ char  loctab [32768 * 5] = {0};
 	   }
 	   fclose(fhash);
 	}
+	delete []	hashtab;
+	delete []	loctab;
+	delete [] 	mettab [0];
+	delete []	mettab [1];
+	delete []	allfreqs;
 	return 0;
 }

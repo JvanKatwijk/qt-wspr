@@ -1,0 +1,365 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>687</width>
+    <height>507</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>qt-wspr</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QHBoxLayout" name="horizontalLayout_6">
+    <item>
+     <layout class="QVBoxLayout" name="verticalLayout">
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout">
+        <item>
+         <widget class="QLabel" name="label_2">
+          <property name="font">
+           <font>
+            <pointsize>14</pointsize>
+           </font>
+          </property>
+          <property name="toolTip">
+           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Copyright J van Katwijk, Lazy Chair Computing&lt;/p&gt;&lt;p&gt;This EXPERIMENTAL wspr decoder is based on the wspr decoding software from Joe Taylor (available under GNU GPL V3) , see copyrights below copyright 2001-2015, Joe Taylor, K1JT&lt;/p&gt;&lt;p&gt; Much of the present code is based on work by Steven Franke, K9AN&lt;/p&gt;&lt;p&gt; which in turn was based on earlier work by K1JT.&lt;/p&gt;&lt;p&gt; Copyright 2014-2015, Steven Franke, K9AN &lt;/p&gt;&lt;p&gt;with minor modifications&lt;/p&gt;&lt;p&gt; Copyright 2016, Guenael Jouchet, VA2GKA&lt;/p&gt;&lt;p&gt;The software is available under a GPL V3&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          </property>
+          <property name="text">
+           <string>©</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignCenter</set>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QComboBox" name="freqButton">
+          <property name="toolTip">
+           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The selected band. A list of known frequencies for wspr transmissions is packed into this combobox&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          </property>
+          <item>
+           <property name="text">
+            <string>LF</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>jan</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>MF</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>160m</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>80m</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>60m</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>40m</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>30m</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>20m</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>17m</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>15m</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>12m</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>10m</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>6m</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>4m</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>2m</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>70cm</string>
+           </property>
+          </item>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLCDNumber" name="frequencyDisplay">
+          <property name="toolTip">
+           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The frequency tuned to&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          </property>
+          <property name="digitCount">
+           <number>10</number>
+          </property>
+          <property name="segmentStyle">
+           <enum>QLCDNumber::Flat</enum>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QSpinBox" name="mouse_Inc">
+          <property name="toolTip">
+           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Mouse Increment. The amount of Hz that will change when moving the mousewheel is set here.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          </property>
+          <property name="value">
+           <number>5</number>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout_2">
+        <item>
+         <widget class="QLabel" name="statusLabel">
+          <property name="text">
+           <string>TextLabel</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QSpinBox" name="npasses_Selector">
+          <property name="toolTip">
+           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;selector for number of passes to make&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="identity_Button">
+          <property name="toolTip">
+           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;In order for the reporting to the psk reporter the messages are augmented with the call and location of the monitor. Touching the button will show a small menu where your data can be entered&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          </property>
+          <property name="text">
+           <string>set identity</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="dumpButton">
+          <property name="text">
+           <string>dump</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <layout class="QGridLayout" name="gridLayout">
+        <item row="0" column="0">
+         <widget class="QPushButton" name="quickMode_Button">
+          <property name="toolTip">
+           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Touch this button for &amp;quot;quick&amp;quot; mode, i.e. faster processing with less validity tests&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          </property>
+          <property name="text">
+           <string>quickMode</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QPushButton" name="subtraction_Button">
+          <property name="toolTip">
+           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The default way on processing the wspr signal is to reconstruct the signal as it should have been for each message received and subtracting that from the incoming signal.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          </property>
+          <property name="text">
+           <string>subtraction</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="2">
+         <widget class="QPushButton" name="hashtable_Button">
+          <property name="text">
+           <string>hashtable</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="3">
+         <widget class="QPushButton" name="report_Button">
+          <property name="toolTip">
+           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Received messages can be uploaded to the pskreporter service. Touching the button instructs the software to start the pskreporting or, if reporting is on, switch it off.&lt;/p&gt;&lt;p&gt;A precondition is that your identity is passed on to the software.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          </property>
+          <property name="text">
+           <string>report</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="0">
+         <widget class="QLabel" name="quickMode_display">
+          <property name="text">
+           <string>quikMode off</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="1">
+         <widget class="QLabel" name="subtraction_display">
+          <property name="text">
+           <string>subtraction on</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="2">
+         <widget class="QLabel" name="hashtable_display">
+          <property name="text">
+           <string>hashtable off</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="3">
+         <widget class="QLabel" name="report_display">
+          <property name="text">
+           <string>report off</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout_5">
+        <item>
+         <widget class="QLabel" name="timeDisplay">
+          <property name="frameShape">
+           <enum>QFrame::Panel</enum>
+          </property>
+          <property name="frameShadow">
+           <enum>QFrame::Raised</enum>
+          </property>
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="homecall_label">
+          <property name="text">
+           <string>your call</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="pskLabel">
+          <property name="text">
+           <string>status</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout_3">
+        <item>
+         <widget class="QSlider" name="lfScopeSlider">
+          <property name="orientation">
+           <enum>Qt::Vertical</enum>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QwtPlot" name="lfSpectrum">
+          <property name="maximumSize">
+           <size>
+            <width>16777215</width>
+            <height>111</height>
+           </size>
+          </property>
+          <property name="toolTip">
+           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Main Spectrum Window. This window shows the spectrum of the signal arriving from the selected input device, decimated to the selected inputrate.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout_4">
+        <item>
+         <widget class="QSlider" name="hfScopeSlider">
+          <property name="orientation">
+           <enum>Qt::Vertical</enum>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QwtPlot" name="hfSpectrum">
+          <property name="maximumSize">
+           <size>
+            <width>16777215</width>
+            <height>111</height>
+           </size>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </item>
+    <item>
+     <widget class="QListView" name="textDisplay"/>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+  <widget class="QMenuBar" name="menuBar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>687</width>
+     <height>29</height>
+    </rect>
+   </property>
+  </widget>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>QwtPlot</class>
+   <extends>QFrame</extends>
+   <header>qwt_plot.h</header>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections/>
+</ui>

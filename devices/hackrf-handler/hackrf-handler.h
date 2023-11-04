@@ -1,35 +1,35 @@
 #
 /*
- *    Copyright (C) 2017 .. 2018
+ *    Copyright (C) 2016 .. 2023
  *    Jan van Katwijk (J.vanKatwijk@gmail.com)
  *    Lazy Chair Computing
  *
- *    This file is part of the noaa receiver
+ *    This file is part of the Qt-wspr
  *
- *    noaa receiver is free software; you can redistribute it and/or modify
+ *    Qt-wspr is free software; you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
  *    the Free Software Foundation; either version 2 of the License, or
  *    (at your option) any later version.
  *
- *    noaa receiver is distributed in the hope that it will be useful,
+ *    Wt-wspr is distributed in the hope that it will be useful,
  *    but WITHOUT ANY WARRANTY; without even the implied warranty of
  *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with noaa receiver; if not, write to the Free Software
+ *    along with Qt-wspr; if not, write to the Free Software
  *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifndef __HACKRF_HANDLER__
-#define	__HACKRF_HANDLER__
+#pragma once
 
 #include	<QObject>
 #include	<QFrame>
 #include	<QSettings>
 #include	<atomic>
 #include	<utility>
-#include	"radio-constants.h"
+#include	"constants.h"
+#include	"decimator.h"
 #include	"ringbuffer.h"
 #include	"fir-filters.h"
 #include	"device-handler.h"
@@ -46,10 +46,10 @@ typedef int (*hackrf_sample_block_cd_fn)(hackrf_transfer *transfer);
 //
 //	Dll and ".so" function prototypes
 
-typedef	int	(*pfn_hackrf_init)	(void);
+typedef	int	(*pfn_hackrf_init)	();
 typedef	int	(*pfn_hackrf_open)	(hackrf_device ** device);
 typedef	int	(*pfn_hackrf_close)	(hackrf_device *device);
-typedef	int	(*pfn_hackrf_exit)	(void);
+typedef	int	(*pfn_hackrf_exit)	();
 typedef	int	(*pfn_hackrf_start_rx)	(hackrf_device *,
 	                                 hackrf_sample_block_cd_fn, void *);
 typedef	int	(*pfn_hackrf_stop_rx)	(hackrf_device *);
@@ -92,8 +92,8 @@ public:
         int32_t         inputRate;
         int32_t         outputRate;
         void            report_dataAvailable    ();
-        decimatingFIR	* filter_1;
-        decimatingFIR	* filter_2;
+        decimator	* filter_1;
+        decimator	* filter_2;
 	hackrf_device	*theDevice;
 private:
 	QFrame		myFrame;
@@ -126,5 +126,4 @@ private slots:
 	void		setLNAGain	(int);
 	void		setVGAGain	(int);
 };
-#endif
 

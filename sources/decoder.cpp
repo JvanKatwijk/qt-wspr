@@ -24,11 +24,22 @@
 #include	"radio.h"
 
 	decoder::decoder	(RadioInterface *myRadio,
-	                         RingBuffer<std::complex<float>> *passBuffer) {
+	                         RingBuffer<std::complex<float>> *passBuffer):
+	                                     fft (512, false) {
 	this	-> myRadio	= myRadio;
 	this	-> passBuffer	= passBuffer;
 	connect (this, SIGNAL (printLine (const QString &)),
 	         myRadio, SLOT (printLine (const QString &)));
+	connect (this,  SIGNAL (sendMessage (const QString &,
+	                                     const QString &,
+	                                     int, int, int)),
+	         myRadio, SLOT (sendMessage (const QString &,
+	                                     const QString &,
+	                                     int, int, int)));
+	connect (this, SIGNAL (transmitMessages ()),
+	         myRadio, SLOT (transmitMessages ()));
+	connect (this, SIGNAL (sendString (const QString &)),
+	         myRadio, SLOT (sendString (const QString &)));
 }
 
 	decoder::~decoder	() {}
@@ -55,25 +66,6 @@ int	n_results;
 	   samples_q [i]     = imag (buffer [i]);
 	}
 //
-//	optional
-//	Normalize the sample @-3dB
-	float maxSig = 1e-24f;
-	for (int i = 0; i < SIGNAL_LENGTH * SIGNAL_SAMPLE_RATE; i++) {
-	   float absI = fabs (samples_i [i]);
-	   float absQ = fabs (samples_q [i]);
-
-	   if (absI > maxSig)
-	      maxSig = absI;
-	   if (absQ > maxSig)
-	      maxSig = absQ;
-	}
-
-	maxSig = 0.5 / maxSig;
-	for (int i = 0; i < SIGNAL_LENGTH * SIGNAL_SAMPLE_RATE; i++) {
-	   samples_i [i] *= maxSig;
-	   samples_q [i] *= maxSig;
-	}
-
 	time_t unixtime;
 	time (&unixtime);
 	unixtime = unixtime - 120 + 1;
@@ -81,37 +73,38 @@ int	n_results;
 
 //	Search & decode the signal */
 
-	wspr_decode (samples_i,
+	wspr_decode (&fft,
+	             samples_i,
                      samples_q,
                      SIGNAL_LENGTH * SIGNAL_SAMPLE_RATE,
                      decOptions,
                      decResults,
                      &n_results);
-        if (decOptions. report)
-           postSpots (n_results);
+	
         printSpots (n_results);
-}
-
-void	decoder::postSpots	(int amount) {
+	if (n_results > 0) {
+	   for (int i = 0; i < n_results; i ++)
+	      postSpot (decResults [i]);
+	   transmitMessages ();
+	}
 }
 
 void	decoder::printSpots	(int amount) {
 char	tmp [155];
-QString	res;
+QString	output;
 	if (amount == 0) {
-	   sprintf (tmp, "No spot %04d-%02d-%02d %02d:%02dz\n",
+	   sprintf (tmp, "No spot %04d-%02d-%02d %02d:%02dz",
 	       gtm	-> tm_year + 1900,
 	       gtm	-> tm_mon + 1,
 	       gtm	-> tm_mday,
 	       gtm	-> tm_hour,
 	       gtm	-> tm_min);
-	   res = QString (tmp);
-	   printLine (res);
+	   output = QString (tmp);
+	   printLine (output);
 	   return;
 	}
 	for (int i = 0; i < amount; i++) {
-	   sprintf (tmp, "Spot :  %04d-%02d-%02d %02d:%02d:%02d %6.2f %6.2f %10.6f %2d %7s %6s %2s\n",
-	       gtm	-> tm_year + 1900,
+	   sprintf (tmp, "%02d-%02d %02d:%02d:%02d -> %6.2f %6.2f %10.6f %2d %7s %6s %2s",
 	       gtm	-> tm_mon + 1,
 	       gtm	-> tm_mday,
 	       gtm	-> tm_hour,
@@ -124,8 +117,31 @@ QString	res;
 	       decResults [i]. call,
 	       decResults [i]. loc,
 	       decResults [i]. pwr);
-	   res	= QString (tmp);
-	   printLine (res);
+	   output	= QString (tmp);
+	   printLine (output);
+	}
+
+	QString theTime	= QString (gtm -> tm_hour) + "-" +
+	                  QString (gtm -> tm_min);
+
+	for (int i = 0; i < amount; i++) {
+	   struct decoder_results res = decResults [i];
+	   QString currentMessage = "at " + theTime + ";" +
+	                   QString::number (res. snr) + ";" +
+			   QString::number (res. dt) + ";" +
+			   QString::number (res. freq) + ";" +
+			   QString::number (res. drift) + ";" +
+			   QString (res. call) + ";" +
+			   QString (res. loc) + ";" +
+			   QString (res. pwr) + ";";
+	   sendString (currentMessage);
 	}
 }
 
+void	decoder::postSpot (decoder_results &res) {
+	sendMessage (QString (res. call),
+	             QString (res. loc),
+	             (int)(res. freq * 1000000),
+	             (int)(res. snr),
+	             time (NULL));
+}

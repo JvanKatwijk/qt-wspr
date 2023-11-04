@@ -7,81 +7,90 @@ CONFIG		+= console
 #CONFIG		-= console
 TARGET		= qt-wspr
 QMAKE_CXXFLAGS	+= -std=c++14 
-#QMAKE_CFLAGS	+= -flto -ffast-math 
-#QMAKE_CXXFLAGS	+= -flto -ffast-math 
-#QMAKE_LFLAGS	+= -flto
-QMAKE_CFLAGS	+= -g
-QMAKE_CXXFLAGS	+= -g
-QMAKE_LFLAGS	+= -g
-QMAKE_CXXFLAGS	+= -fsanitize=address
-QMAKE_CFLAGS	+= -fsanitize=address
-QMAKE_LFLAGS	+= -fsanitize=address
-RC_ICONS	=  noaa.ico
+QMAKE_CFLAGS	+= -flto -ffast-math 
+QMAKE_CXXFLAGS	+= -flto -ffast-math 
+QMAKE_LFLAGS	+= -flto
+#QMAKE_CFLAGS	+= -g
+#QMAKE_CXXFLAGS	+= -g
+#QMAKE_LFLAGS	+= -g
+#QMAKE_CXXFLAGS	+= -fsanitize=address
+#QMAKE_CFLAGS	+= -fsanitize=address
+#QMAKE_LFLAGS	+= -fsanitize=address
+RC_ICONS	=  qt-wspr.ico
 RESOURCES       += resources.qrc
 
 DEPENDPATH += .  \
-	      filters \
-	      wsprd \
-	      utils \
-	      utils/kiss \
-	      scopes-qwt6 \
+	      forms \
+	      sources \
+	      sourcesfilters \
+	      sources/wsprd \
+	      sources/utils \
+	      sources/utils/fft \
+	      sources/scopes-qwt6 \
 	      devices 
 
 INCLUDEPATH += .  \
-	      filters \
-	      wsprd \
-	      utils \
-	      utils/kiss \
-	      scopes-qwt6 \
+	      sources \
+	      sources/filters \
+	      sources/wsprd \
+	      sources/utils \
+	      sources/utils/fft \
+	      sources/scopes-qwt6 \
 	      devices 
 
 #CONFIG += static
 
 # Input
-HEADERS += ./constants.h \
-	   ./radio.h \
-	   ./decoder.h \
-           ./utils/ringbuffer.h \
-	   ./utils/decimator.h \
-	   ./utils/kiss/kiss_fft.h \
-	   ./utils/kiss/kiss_fftr.h \
-	   ./utils/kiss/_kiss_fft_guts.h \
-           ./filters/fir-filters.h \
-	   ./scopes-qwt6/virtual-scope.h \
-	   ./scopes-qwt6/spectrogramdata.h \
-	   ./scopes-qwt6/waterfall-scope.h \
-	   ./scopes-qwt6/spectrum-scope.h \
-           ./scopes-qwt6/scope.h \
-           ./scopes-qwt6/fft-scope.h \
-	   ./wsprd/fano.h \
-	   ./wsprd/metric_tables.h \
-	   ./wsprd/nhash.h \
-	   ./wsprd/wsprd.h \
-	   ./wsprd/wsprd_utils.h \
-	   ./wsprd/wsprsim_utils.h \
+HEADERS += ./sources/constants.h \
+	   ./sources//radio.h \
+	   ./sources/decoder.h \
+	   ./sources/psk-reporter.h \
+	   ./sources//utils/identity-dialog.h \
+           ./sources/utils/ringbuffer.h \
+	   ./sources/utils/decimator.h \
+	   ./sources/utils/fft/fft-handler.h \
+	   ./sources/utils/fft/kiss_fft.h \
+	   ./sources/utils/fft/kiss_fftr.h \
+	   ./sources/utils/fft/_kiss_fft_guts.h \
+           ./sources/filters/fir-filters.h \
+	   ./sources/scopes-qwt6/virtual-scope.h \
+	   ./sources/scopes-qwt6/spectrogramdata.h \
+	   ./sources/scopes-qwt6/waterfall-scope.h \
+	   ./sources/scopes-qwt6/spectrum-scope.h \
+           ./sources/scopes-qwt6/scope.h \
+           ./sources/scopes-qwt6/fft-scope.h \
+	   ./sources/wsprd/fano.h \
+	   ./sources/wsprd/metric_tables.h \
+	   ./sources/wsprd/nhash.h \
+	   ./sources/wsprd/wsprd.h \
+	   ./sources/wsprd/wsprd_utils.h \
+	   ./sources/wsprd/wsprsim_utils.h \
 	   ./devices/deviceselect.h \
 	   ./devices/device-handler.h 
 
-FORMS	+= ./newradio.ui 
+FORMS	+= ./forms/newradio.ui 
 
-SOURCES += ./main.cpp \
-	   ./radio.cpp \
-	   ./decoder.cpp \
-	   ./utils/decimator.cpp \
-           ./utils/kiss/kiss_fft.c \
-           ./utils/kiss/kiss_fftr.c \
-           ./filters/fir-filters.cpp \
-	   ./scopes-qwt6/virtual-scope.cpp \
-	   ./scopes-qwt6/waterfall-scope.cpp \
-	   ./scopes-qwt6/spectrum-scope.cpp \
-           ./scopes-qwt6/scope.cpp \
-           ./scopes-qwt6/fft-scope.cpp \
-	   ./wsprd/fano.cpp \
-	   ./wsprd/nhash.cpp \
-	   ./wsprd/tab.cpp \
-	   ./wsprd/wsprd.cpp \
-	   ./wsprd/wsprd_utils.cpp \
-	   ./wsprd/wsprsim_utils.cpp \
+SOURCES += ./sources/main.cpp \
+	   ./sources/radio.cpp \
+	   ./sources/decoder.cpp \
+	   ./sources/psk-reporter.cpp \
+	   ./sources/utils/identity-dialog.cpp \
+	   ./sources/utils/decimator.cpp \
+	   ./sources/utils/fft/fft-handler.cpp \
+           ./sources/utils/fft/kiss_fft.c \
+           ./sources/utils/fft/kiss_fftr.c \
+           ./sources/filters/fir-filters.cpp \
+	   ./sources/scopes-qwt6/virtual-scope.cpp \
+	   ./sources/scopes-qwt6/waterfall-scope.cpp \
+	   ./sources//scopes-qwt6/spectrum-scope.cpp \
+           ./sources/scopes-qwt6/scope.cpp \
+           ./sources/scopes-qwt6/fft-scope.cpp \
+	   ./sources/wsprd/fano.cpp \
+	   ./sources/wsprd/nhash.cpp \
+	   ./sources/wsprd/tab.cpp \
+	   ./sources/wsprd/wsprd.cpp \
+	   ./sources/wsprd/wsprd_utils.cpp \
+	   ./sources/wsprd/wsprsim_utils.cpp \
 	   ./devices/deviceselect.cpp \
 	   ./devices/device-handler.cpp 
 
@@ -99,9 +108,7 @@ isEmpty(GITHASHSTRING) {
 
 DESTDIR		= ./linux-bin
 CONFIG		+= sdrplay-v3
-#CONFIG		+= sdrplay-v2
-#CONFIG		+= rtlsdr
-#CONFIG		+= hackrf
+CONFIG		+= hackrf
 LIBS		+= -L/usr/lib64
 LIBS		+= -L/lib64
 INCLUDEPATH	+= /usr/include/qt5/qwt
@@ -121,33 +128,22 @@ isEmpty(GITHASHSTRING) {
     DEFINES += GITHASH=\\\"------\\\"
 }
 
-DESTDIR		= /usr/shared/w32-programs/windows-drm2
-CONFIG		+= sdrplay
-#CONFIG		+= hackrf
+DESTDIR		= /usr/shared/w32-programs/windows-wspr
+CONFIG		+= sdrplay-v3
+CONFIG		+= hackrf
 #CONFIG		+= rtlsdr
-# choose one of the estimators
-# CONFIG	+= estimator_1
-# CONFIG	+= estimator_2	does not work yet
-# CONFIG	+= estimator_jan
- CONFIG	+= estimator_eigen
-#CONFIG		+= estimator_arma
 # includes in mingw differ from the includes in fedora linux
 INCLUDEPATH += /usr/i686-w64-mingw32/sys-root/mingw/include
 INCLUDEPATH += /usr/i686-w64-mingw32/sys-root/mingw/include/eigen3
 INCLUDEPATH += /usr/i686-w64-mingw32/sys-root/mingw/include/qt5/qwt
 INCLUDEPATH += /usr/local/include
 LIBS    += -L/usr/i686-w64-mingw32/sys-root/mingw/lib
-LIBS    += -lfftw3f
-LIBS    += -lportaudio
 LIBS    += -lqwt-qt5
 #LIBS    += -lqwt
 LIBS    += -lusb-1.0
-LIBS    += -lsndfile
-LIBS    += -lsamplerate
 LIBS    += -lole32
-#CONFIG		+= -lfaad_drm
-CONFIG		+= fdk-aac
 LIBS    += -lwinmm
+LIBS	+= -lws2_32
 }
 
 #       the SDRplay

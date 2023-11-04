@@ -34,6 +34,8 @@
 #pragma once
 
 #include	"constants.h"
+class	fftHandler;
+
 /* Option & config of decoder (Shared with the wsprd code) */
 //struct decoder_options {
 //    int  freq;          // Dial frequency
@@ -97,7 +99,8 @@ void subtract_signal2(float *id,
                       int shift,
                       float drift,
                       unsigned char *channel_symbols);
-int wspr_decode(float  *idat, 
+int wspr_decode (fftHandler *,
+	         float  *idat, 
                 float  *qdat, 
                 int    samples,
                 struct decoder_options options, 

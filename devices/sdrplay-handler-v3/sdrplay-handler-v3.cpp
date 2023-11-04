@@ -370,8 +370,8 @@ float	denominator	= (float) (p -> denominator);
 	   
 	}
 	p -> _I_Buffer -> putDataIntoBuffer (localBuf, cnt);
-	if (p -> _I_Buffer -> GetRingBufferReadAvailable () > 24000)
-           p -> newdataAvailable (24000);
+	if (p -> _I_Buffer -> GetRingBufferReadAvailable () > 1920)
+           p -> newdataAvailable (1920);
 
 }
 

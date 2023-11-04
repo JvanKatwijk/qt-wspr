@@ -29,10 +29,11 @@
 #include	<complex>
 #include        <math.h>
 #include        <string.h>
+#include	<mutex>
 #include        <sys/time.h>
 #include	<QString>
 #include	"wsprd.h"
-
+#include	"fft-handler.h"
 class	RadioInterface;
 
 class	decoder:public QThread {
@@ -43,8 +44,9 @@ public:
 		~decoder	();
 	void	goDecoding	(struct decoder_options decOptions);
 private:
+	fftHandler	fft;
 	void	run		();
-	void	postSpots	(int);
+	void	postSpot	(struct decoder_results &);
 	void	printSpots	(int);
 	RingBuffer<std::complex<float>>	*passBuffer;
 	std::complex<float> buffer 	[SIGNAL_LENGTH * SIGNAL_SAMPLE_RATE];
@@ -54,8 +56,17 @@ private:
 	struct decoder_results  decResults [50];
      	struct tm       *gtm;
 	RadioInterface	*myRadio;
+	std::mutex	fileLocker;
 signals:
 	void	printLine	(const QString &);
+	void	transmitMessages	();
+	void	sendMessage	(const QString &,	// the call
+	                         const QString &,	// the loc
+	                         int,			// the freq
+	                         int,			// the snr
+	                         int			// the time
+	                        );
+	void	sendString	(const QString &);
 };
 
 #endif

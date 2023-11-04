@@ -51,7 +51,7 @@ QString fileName;
 }
 
 static const QString styleSheet_1 =
-        #include "./Combinear.qss"
+        #include "./stylesheets/Combinear.qss"
 ;
 
 #define	DEFAULT_INI	".qt-wspr.ini"

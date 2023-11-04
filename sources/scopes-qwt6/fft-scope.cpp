@@ -23,6 +23,7 @@
 #include	"spectrum-scope.h"
 #include	"waterfall-scope.h"
 #include	"fft-scope.h"
+#include	"constants.h"
 
 //
 	fftScope::fftScope (QwtPlot	*plotgrid,

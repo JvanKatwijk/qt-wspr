@@ -19,7 +19,7 @@ bool fano(unsigned int *metric,
          unsigned char *data,
          unsigned char *symbols,
          unsigned int nbits,
-         int mettab[2][256],
+         int	*mettab[2],
          int delta,
          unsigned int maxcycles);
 

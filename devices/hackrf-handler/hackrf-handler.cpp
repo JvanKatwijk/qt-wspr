@@ -143,16 +143,18 @@ int	i;
 	                setText (this -> hackrf_usb_board_id_name (board_id));
 	}
 
-	filter_1	= new decimatingFIR (2 * 4 + 1,
-                                                     + outputRate / 2,
-                                                     inputRate, 3);
-        filter_2	= new decimatingFIR (2 * 8 + 1,
-                                                      outputRate / 2,
-                                                      inputRate / 4, 4);
+	filter_1	= new decimator (2 * 4 + 1,
+                                         - outputRate / 2,
+                                         + outputRate / 2,
+                                         inputRate, 3);
+        filter_2	= new decimator (2 * 8 + 1,
+                                         - outputRate / 2,
+                                         + outputRate / 2,
+                                         inputRate / 4, 4);
 	running. store (false);
 }
 
-	hackrfHandler::~hackrfHandler	(void) {
+	hackrfHandler::~hackrfHandler	() {
 	stopReader ();
 	hackrfSettings	-> beginGroup ("hackrfSettings");
 	hackrfSettings	-> setValue ("hack_lnaGain",

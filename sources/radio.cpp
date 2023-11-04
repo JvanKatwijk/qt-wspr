@@ -28,8 +28,9 @@
 #include        <math.h>
 #include        <string.h>
 #include        <sys/time.h>
-
+#include	"identity-dialog.h"
 #include	<QSettings>
+#include	<QString>
 #include	<QDebug>
 #include	<QDateTime>
 #include	<QObject>
@@ -40,26 +41,19 @@
 #include	"constants.h"
 #include	"radio.h"
 #include	"fft-scope.h"
+#include	"psk-reporter.h"
 #include	"decoder.h"
+
+#include	"deviceselect.h"
 //
 //      devices
 #include        "device-handler.h"
-#ifdef HAVE_SDRPLAY_V2
-#include	"sdrplay-handler-v2.h"
-#elif HAVE_SDRPLAY_V3
 #include	"sdrplay-handler-v3.h"
-#elif HAVE_AIRSPY
-#include	"airspy-handler.h"
-#elif HAVE_RTLSDR
-#include	"rtlsdr-handler.h"
-#elif HAVE_HACKRF
 #include	"hackrf-handler.h"
-#elif HAVE_LIME
-#include	"lime-handler.h"
-#elif HAVE_PLUTO
-#include	"pluto-handler.h"
-#endif
 //
+
+static
+std::vector<pskMessage> messageStack;
 
 	RadioInterface::RadioInterface (QSettings	*sI,
 	                                QWidget		*parent):
@@ -76,7 +70,7 @@ struct timeval lTime;
 	this	-> settings	= sI;
 	setupUi (this);
 //
-//	and the decoders
+//	and the decoder
 	displaySize		= 1024;
 	frequencyDisplay	->  display (KHz (14096));
 	mouseIncrement		= 5;
@@ -104,12 +98,13 @@ struct timeval lTime;
 	statusLabel	-> setText ("waiting");
 	sampleCount			= 0;
 
+	theReporter		= nullptr;
+	dumpfilePointer		= nullptr;
 	changeRequest. state	= false;
 	changeRequest. freqChange	= false;
 	connect (hfScope, SIGNAL (clickedwithLeft (int)),
 	         this, SLOT (adjustFrequency (int)));
-	connect (hfScope,
-	         SIGNAL (clickedwithRight (int)),
+	connect (hfScope, SIGNAL (clickedwithRight (int)),
 	         this, SLOT (switch_hfViewMode (int)));
 	connect (lfScope, SIGNAL (clickedwithLeft (int)),
 	         this, SLOT (adjustFrequency (int)));
@@ -118,7 +113,7 @@ struct timeval lTime;
 	connect (mouse_Inc, SIGNAL (valueChanged (int)),
 	         this, SLOT (set_mouseIncrement (int)));
 	connect (freqButton, SIGNAL (activated (const QString &)),
-	         this, SLOT (handle_freqButton (const QString &)));
+	         this, SLOT (set_band (const QString &)));
 	connect (quickMode_Button, SIGNAL (clicked ()),
 	         this, SLOT (handle_quickMode_Button ()));
 	connect (subtraction_Button, SIGNAL (clicked ()),
@@ -131,15 +126,19 @@ struct timeval lTime;
 	         this, SLOT (handle_identity_Button ()));
 	connect (npasses_Selector, SIGNAL (valueChanged (int)),
 	         this, SLOT (handle_npasses_Selector (int)));
-
+	connect (dumpButton, SIGNAL (clicked ()),
+	         this, SLOT (handle_dumpButton ()));
 	myDecoder	= new decoder (this, &passBuffer);
 
 	try {
-	   theDevice = new sdrplayHandler_v3 (this, &inputBuffer,
-	                                           settings, 192000);
+	   theDevice	= setDevice (settings, &inputBuffer);
 	   } catch (int e) {
 	      return;
 	}
+
+	QString homeCall	=
+	         settings	-> value ("homeCall", "your call"). toString ();
+	homecall_label		-> setText (homeCall);
 
 	QString selectedBand	=
 	         settings	-> value ("selected band", "LF"). toString ();
@@ -163,24 +162,21 @@ struct timeval lTime;
 	quickMode_display	-> setText ("quick mode off");
 	decOptions. report		= false;
 	report_display		-> setText ("report off");
-	decOptions. dialfreq		= KHz (14096);	// default
+//
+//	
 //
 
 	connect (theDevice, SIGNAL (dataAvailable (int)),
 	        this, SLOT (handle_dataAvailable (int)));
-	connect (&secondsTimer, SIGNAL (timeout ()),
+	connect (&secondsTimer, SIGNAL (timeout ()), 
 	         this, SLOT (twoMinutes ()));
 
-	theDevice	-> setVFOFrequency (arg_to_freq (freqButton -> currentText ()) + 1500) ;
-	
+	int	theFreq	= arg_to_freq (freqButton -> currentText ());
+	decOptions. freq		= theFreq;
+	decOptions. dialfreq		= theFreq;
+	theDevice	-> setVFOFrequency (theFreq + 1500) ;
 	frequencyDisplay ->  display (theDevice -> getVFOFrequency ());
 	theDevice	-> restartReader ();
-	gettimeofday (&lTime, nullptr);
-	uint32_t sec		= lTime.tv_sec % 120;
-	uint32_t usec		= sec * 1000000 + lTime.tv_usec;
-	uint32_t uwait		= 120000000 - usec - 2000;
-	secondsTimer. setSingleShot (true);
-	secondsTimer. start (uwait / 1000);
 }
 //      The end of all
 	RadioInterface::~RadioInterface () {
@@ -250,7 +246,7 @@ static int secondsCounter	= 0;
 void RadioInterface::closeEvent (QCloseEvent *event) {
 
 	QMessageBox::StandardButton resultButton =
-	                QMessageBox::question (this, "dabRadio",
+	                QMessageBox::question (this, "qt-wspr",
 	                                       tr("Are you sure?\n"),
 	                                       QMessageBox::No | QMessageBox::Yes,
 	                                       QMessageBox::Yes);
@@ -262,22 +258,54 @@ void RadioInterface::closeEvent (QCloseEvent *event) {
 	}
 }
 
-void	RadioInterface::handle_freqButton	(const QString &s) {
+void	RadioInterface::set_band	(const QString &s) {
 int	freq	= arg_to_freq (s);
-	changeRequest. state 		= true;
 	changeRequest. freqChange	= true;
 	changeRequest. freqValue	= freq;
-	QMessageBox::warning (this, tr ("Warning"),
-	                     tr ("The change will be effective at the next cycle"));
 	settings	-> setValue ("selected band", s);
 }
+
+
+void	RadioInterface::honor_freqRequest () {
+	if (changeRequest. freqChange) {
+	   decOptions. dialfreq	= changeRequest. freqValue;
+	   decOptions. freq	= changeRequest. freqValue;
+	   theDevice	-> setVFOFrequency (decOptions. dialfreq + 1500);
+	   frequencyDisplay ->  display (theDevice -> getVFOFrequency ());
+	   changeRequest. freqChange = false;;
+	}
+}
+
 //
 //	The device handles decimation to a decent 192000 samples/sec
 //	and passes slices of 1920 samples on.
-//	delay will be between 1 and 2 milliseconds
+//	The device is "trained" to pass on segments of 1920 samples
+//	delay will be somewhere around 10 msec
 void	RadioInterface::handle_dataAvailable (int n) {
 int	amp	= lfScopeSlider	-> value ();
+static int delayCount	= 0;
+static	int teller	= 0;
+	if (!savingSamples. load ()) {
+	   struct timeval lTime;
+	   gettimeofday (&lTime, nullptr);
+	   int32_t sec   = lTime. tv_sec % 120;
+	   int32_t msec  = (sec * 1000000 + lTime. tv_usec) / 1000;
+	   if (sec != delayCount) {
+	      delayCount = sec;
+	      statusLabel -> setText ("waiting " + QString::number(120 - sec));
+	   }
+	   if (msec > 1500) { // this is 1.5 second, should be enough
+	      honor_freqRequest();	// if any
+	   }
+	   if (msec <= 50) {
+	      delayCount = 0;
+	      statusLabel -> setText ("end of waiting ");
+	      savingSamples. store (true);
+	      teller		= 0;
+	   }
+	}
 	n = inputBuffer. GetRingBufferReadAvailable ();
+	
 	for (int i = 0; i < n; i ++) {
 	   std::complex<float> sample;
 	   inputBuffer. getDataFromBuffer (&sample, 1);
@@ -300,30 +328,10 @@ int	amp	= lfScopeSlider	-> value ();
 	            passBuffer. putDataIntoBuffer (&sample, 1);
 	            sampleCount ++;
 	            if (sampleCount >= SIGNAL_LENGTH * SIGNAL_SAMPLE_RATE) {
-	               struct timeval lTime;
-	               savingSamples. store (false);
-	               statusLabel -> setStyleSheet ("QLabel {backgroundcolor: red}");
-	               statusLabel -> setText ("decoding");
+//	               statusLabel -> setText ("decoding");
 	               sampleCount = 0;
-	               gettimeofday (&lTime, nullptr);
-	               uint32_t sec		= lTime.tv_sec % 120;
-	               fprintf (stderr, "gestopt at %d\n", sec);
 	               myDecoder	-> goDecoding (decOptions);
-	               statusLabel	-> setStyleSheet ("QLabel {backgroundcolor: green}");
-	               statusLabel	-> setText ("waiting");
-	               sec		= lTime.tv_sec % 120;
-	               uint32_t usec		= sec * 1000000 + lTime.tv_usec;
-	               uint32_t uwait		= 120000000 - usec - 2000;
-	               secondsTimer. start (uwait / 1000);
-	            }
-	         }
-	         else 
-	         if (changeRequest. state) {
-	            if (changeRequest. freqChange) {
-	               theDevice ->
-	                   setVFOFrequency (changeRequest. freqValue + 1500);
-	               frequencyDisplay	->  display (changeRequest. freqValue);
-	               changeRequest. freqChange = false;
+	               savingSamples. store (false);
 	            }
 	         }
 	      }
@@ -331,23 +339,11 @@ int	amp	= lfScopeSlider	-> value ();
 	}
 }
 
-void	RadioInterface::twoMinutes	() {
-	secondsTimer. stop ();
-	struct timeval lTime;
-	gettimeofday (&lTime, nullptr);
-	fprintf (stderr, "starting the decoder at %d\n",
-	                                (int)(lTime.tv_sec % 120));
-	secondsTimer. start (120 * 1000);
-	savingSamples. store (true);
-	statusLabel	-> setStyleSheet ("QLabel {background-color: blue}");
-	statusLabel	-> setText ("reading");
-}
-
 struct {
 	QString key;
 	int	freq;
 } freqTable [] = {
-	{"LF", 136000},	   {"jan", 144100000}, {"MF", 474200},
+	{"LF"  , 136000},   {"jan", 144100000}, {"MF", 474200},
 	{"160m", 1836600}, {"80m", 3568600},  {"60m", 5287200},
 	{"40m", 7038600},  {"30m", 10138700}, {"20m", 14095600},
 	{"17m", 18104600}, {"15m", 21094600}, {"12m", 24924600},
@@ -393,11 +389,34 @@ void	RadioInterface::handle_hashTable_Button () {
 
 void	RadioInterface::handle_report_Button    () {
 	decOptions. report	= !decOptions. report;
-	report_display		-> setText (decOptions. report ?
-	                                    "report on": "report off");
+	if (decOptions. report) {
+	   try {
+	      printLock. lock ();
+	      theReporter	= new pskReporter (this, settings);
+	      printLock. unlock ();
+	      report_display	-> setText ("report on");
+	   } catch (...) {
+	      printLock. unlock ();
+	      fprintf (stderr, "there was an exception");
+	      report_display	-> setText ("report off");
+	   }
+	}
+	else {
+	   printLock. lock ();
+	   delete theReporter;
+	   report_display	-> setText ("report off");
+	   theReporter		= nullptr;
+	   printLock. unlock ();
+	}
 }
 
-void	RadioInterface::handle_identity_Button  () {}
+void	RadioInterface::handle_identity_Button  () {
+identityDialog Identity (settings);
+        Identity. QDialog::exec (); 
+	QString homeCall	= 
+	         settings	-> value ("homeCall", ""). toString ();
+	homecall_label	-> setText (homeCall);
+}                
  
 void	RadioInterface::handle_npasses_Selector (int n) {
 	decOptions. npasses = n;
@@ -405,13 +424,18 @@ void	RadioInterface::handle_npasses_Selector (int n) {
 
 void	RadioInterface::showText (const QStringList &resList) {
 	model. clear ();
+	QString style = "";
+	style	+= "QListView {";
+	style	+= "font-size: 9pt";
+	style	+= "}";
+	textDisplay -> setStyleSheet (style);
 	for (auto res : resList)
 	   model. appendRow (new QStandardItem (res));
 	textDisplay -> setModel (&model);
 }
 
 void    RadioInterface::printLine (const QString &s) {
-	if (theResults. size () >= 10)
+	if (theResults. size () >= 30)
 	   theResults. pop_front ();
 	theResults += s; 
  
@@ -421,3 +445,135 @@ void    RadioInterface::printLine (const QString &s) {
 	showText (theResults);
 }
 
+void	RadioInterface::show_status	(const QString &s) {
+	pskLabel	-> setText (s);
+}
+
+void	RadioInterface::sendMessage	(const QString &call,
+	                                 const QString &grid,
+	                                 int	freq,
+	                                 int	snr,
+	                                 int32_t seconds) {
+pskMessage m;
+	if (theReporter == nullptr) {
+	   messageStack. resize (0);
+	   return;
+	}
+	m. call		= call;
+	m. grid		= grid;
+	m. freq		= freq;
+	m. snr		= snr;
+	m. seconds	= seconds;
+	messageStack. push_back (m);
+	fprintf (stderr, "In gezonden message is freq %d\n", m. freq);
+}
+
+void	RadioInterface::transmitMessages () {
+	if (theReporter == nullptr) 
+	   return;
+	printLock. lock ();
+	theReporter -> sendMessages (messageStack);
+	printLock. unlock ();
+}
+
+void	RadioInterface::handle_dumpButton	() {
+	if (dumpfilePointer != nullptr) {
+	   fclose (dumpfilePointer);
+	   dumpfilePointer	= nullptr;
+	   dumpButton	-> setText ("dump");
+	   return;
+	}
+	fprintf (stderr, "dumpfilePointer gaan we zetten\n");
+	time_t now = time (0);
+	QString currentTime	= QDateTime::currentDateTime (). toString ();
+	QString homeDir		= QDir::homePath ();
+	QString suggestedName =
+	                  homeDir + "/-wspr-" + currentTime + ".csv";
+	suggestedName		= QDir::toNativeSeparators (suggestedName);
+	QString file 		=
+	      QFileDialog::getSaveFileName (this,
+	                                    tr ("Save file ..."),
+	                                    suggestedName,
+	                                    tr ("csv (*.csv)"),
+	                                    Q_NULLPTR,
+	                                    QFileDialog::DontUseNativeDialog);
+	fprintf (stderr, "file = %s\n", file. toLatin1 (). data ());
+	if (file == QString (""))
+	   return;
+	file		= QDir::toNativeSeparators (file);
+	if (!file.endsWith (".csv", Qt::CaseInsensitive))
+	   file.append (".csv");
+
+	dumpfilePointer	= fopen (file. toUtf8 (). data (), "w");
+	if (dumpfilePointer == NULL) {
+	   fprintf (stderr, "File gaat niet open");
+	   qDebug () << "Cannot open " << file. toUtf8 (). data ();
+	   return;
+	}
+	fprintf (stderr, "topline schrijven");
+	QString topLine = "; snr; dr; freq; drift; call; loc; power;" ;
+	fprintf (dumpfilePointer, "\n%s ; %s\n",
+                                    topLine. toLatin1 (). data (),
+	                            currentTime. toLatin1 (). data ());
+
+	dumpButton		-> setText ("WRITING");
+}
+
+void	RadioInterface::sendString	(const QString &s) {
+	if (dumpfilePointer != nullptr)
+	   fprintf (dumpfilePointer, "%s\n", s. toLatin1 (). data ());
+}
+
+
+deviceHandler	*RadioInterface::
+	            setDevice (QSettings *s,
+	                       RingBuffer<std::complex<float>> *hfBuffer) {
+deviceSelect	deviceSelect;
+deviceHandler	*theDevice	= nullptr;
+QStringList devices;
+
+	devices	+= "sdrplay-v3";
+	devices	+= "hackrf one";
+	devices	+= "quit";
+	deviceSelect. addList (devices);
+	int theIndex = -1;
+	while (theDevice == nullptr) {
+	   theIndex = deviceSelect. QDialog::exec ();
+	   if (theIndex < 0)
+	      continue;
+	   QString s = devices. at (theIndex);
+	   if (s == "quit")
+	      return nullptr;
+	   theDevice	= getDevice (s, settings, hfBuffer);
+	}
+	return theDevice;
+}
+
+deviceHandler	*RadioInterface::
+	                      getDevice (const QString &s,
+	                                 QSettings *settings,
+	                                 RingBuffer<std::complex<float>> *b) {
+	if (s == "sdrplay-v3") {
+	   try {
+	      return new sdrplayHandler_v3 (this, &inputBuffer,
+                                                   settings, 192000);
+
+	   } catch (int e) {
+	   }
+	}
+	else
+	if (s == "hackrf one") {
+	   try {
+	      return  new hackrfHandler (this, &inputBuffer,
+	                                            settings, 192000);
+	   } catch (int e) {
+	   }
+	}
+	else
+	QMessageBox::warning (this, tr ("sdr"),
+	                               tr ("loading device failed"));
+	return nullptr;
+}
+
+void	RadioInterface::twoMinutes	() {
+}

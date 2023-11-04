@@ -23,7 +23,7 @@
 
 #include	<cmath>
 #include	"decimator.h"
-
+#include	"constants.h"
 //
 //	decimationFilter.
 //	Useful for e.g. reduction of the samplerate with dabsticks

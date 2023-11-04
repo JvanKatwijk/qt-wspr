@@ -30,7 +30,7 @@
 #include	<stdexcept>
 #include	<iostream>
 #include	"virtual-scope.h"
-#include	"../kiss/kiss_fft.h"
+#include	"kiss_fft.h"
 #
 
 #define	SPECTRUMVIEW	0100

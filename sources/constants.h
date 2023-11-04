@@ -3,6 +3,7 @@
 #define	__CONSTANTS_H
 
 #include	<stdint.h>
+#include	<complex>
 #define	CURRENT_VERSION "0.1"
 
 #define	Khz(x)	(1000 * x)
@@ -13,6 +14,7 @@
 #define	MHz(x)	(1000 * KHz (x))
 #define	Mhz(x)	(1000 * KHz (x))
 
+typedef	std::complex<float> Complex;
 #ifdef __MINGW32__ 
 #include        "windows.h"
 #else 

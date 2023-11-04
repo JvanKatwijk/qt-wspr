@@ -21,8 +21,7 @@
  *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifndef __SDRPLAY_HANDLER_V3_H
-#define	__SDRPLAY_HANDLER_V3_H
+#pragma once
 
 #include	<QThread>
 #include	<QFrame>
@@ -156,5 +155,5 @@ signals:
 	void			set_apiVersion_signal	(float);
 	void			set_antennaSelect_signal	(bool);
 };
-#endif
+
 

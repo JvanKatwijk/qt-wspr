@@ -30,6 +30,7 @@
 #include	<QTimer>
 #include	<QStandardItemModel>
 #include	<sndfile.h>
+#include	<mutex>
 #include        "ui_newradio.h"
 #include        "constants.h"
 #include        "ringbuffer.h"
@@ -42,6 +43,8 @@ class           QSettings;
 class           fftScope;
 class           fft_scope;
 class		decoder;
+class		pskReporter;
+
 	struct {
 	   bool state;
 	   bool	freqChange;
@@ -64,6 +67,7 @@ private:
 	RingBuffer<std::complex<float>> passBuffer;
 
 	decoder		*myDecoder;
+	pskReporter	*theReporter;
 	QTimer		displayTimer;
 	QTimer		secondsTimer;
 	int32_t		centerFrequency;
@@ -92,11 +96,11 @@ private:
 	int		lnaState;
 	bool		autoGain;
 	int		ppm;
-
+	std::mutex	printLock;
 	QStandardItemModel      model;
         void            showText        (const QStringList &);
         QStringList     theResults; 
-
+	FILE		*dumpfilePointer;
 	std::atomic<bool>	savingSamples;
 	int		sampleCount;
 	int		arg_to_freq		(const QString &s);
@@ -104,15 +108,23 @@ private:
 	std::complex<float> buffer		[SIGNAL_LENGTH * SIGNAL_SAMPLE_RATE];
 	float		samples_i		[SIGNAL_LENGTH * SIGNAL_SAMPLE_RATE];
 	float		samples_q		[SIGNAL_LENGTH * SIGNAL_SAMPLE_RATE];
+
+	deviceHandler	*setDevice		(QSettings *s,
+                               			RingBuffer<Complex> *hfBuffer);
+	deviceHandler	*getDevice		(const QString &,
+	                                         QSettings	*,
+	                                         RingBuffer<Complex> *);
+
 private slots:
-        void            handle_freqButton	(const QString &);
+        void		set_band		(const QString &);
+	void		honor_freqRequest	();
         void            wheelEvent              (QWheelEvent *);
 	void		set_mouseIncrement	(int);
 	void		handle_quitButton	();
 	void		switch_hfViewMode	(int);
 	void		switch_lfViewMode	(int);
 	void		updateTime		();
-	void		twoMinutes		();
+	void            twoMinutes              ();
 	void		closeEvent		(QCloseEvent *event);
 
 	void		handle_quickMode_Button	();
@@ -120,13 +132,20 @@ private slots:
 	void		handle_hashTable_Button	();
 	void		handle_report_Button	();
 	void		handle_identity_Button	();
-
+	void		handle_dumpButton	();
 	void		handle_npasses_Selector	(int);
 public slots:
 	void		handle_dataAvailable	(int);
 	void		adjustFrequency		(int);
 	void		printLine		(const QString &);
-
+	void		show_status		(const QString &);
+	void		transmitMessages	();
+	void		sendMessage		(const QString &,
+	                                         const QString &,
+	                                         int,
+	                                         int,
+	                                         int);
+	void		sendString		(const QString &);
 };
 
 #endif
