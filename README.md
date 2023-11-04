@@ -4,12 +4,12 @@
 Qt-wspr, a WSPR listener with a Qt based front end
 -----------------------------------------------------------------------------
 
-![overview](/qt-wspr.png?raw=true)
+![overview](/qt-wspr-screen.png?raw=true)
 
 In wspr, the transmitter transmits - starting on the even minutes -
 a smallband signal, usually pretty weak, for about 113 seconds.
 (Of course the next minute will be even again, and a new message can
-be sent.
+be sent.)
 The signal itself has a bandwidth of app 6 Hz, with frequency shifts of
 about 1.45 Hz.
 

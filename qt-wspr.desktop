@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=qt-wspr
+Exec=qt-wspr
+Icon=qt-wspr
+Type=Application
+Categories=AudioVideo;
+Comment=A wspr decoder using Qt and C++
+

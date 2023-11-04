@@ -121,8 +121,8 @@ QString	output;
 	   printLine (output);
 	}
 
-	QString theTime	= QString (gtm -> tm_hour) + "-" +
-	                  QString (gtm -> tm_min);
+	QString theTime	= QString::number(gtm -> tm_hour) + "-" +
+	                  QString::number(gtm -> tm_min);
 
 	for (int i = 0; i < amount; i++) {
 	   struct decoder_results res = decResults [i];
