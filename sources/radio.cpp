@@ -397,7 +397,7 @@ void	RadioInterface::handle_report_Button    () {
 	      report_display	-> setText ("report on");
 	   } catch (...) {
 	      printLock. unlock ();
-	      fprintf (stderr, "there was an exception");
+	      report_display	-> setText ("connection failed");
 	      report_display	-> setText ("report off");
 	   }
 	}

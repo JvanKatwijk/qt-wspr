@@ -107,12 +107,13 @@ of the software, as shown in the picture below
 
 
 ------------------------------------------------------------------------
-Creating an executable
+Installers and an executable
 -------------------------------------------------------------------------
 
-While not yet precompiled executables are available, it is not
-too difficult to create an executable.
+The repository contains both an A[[Image and a Windows installer
+Of course it is possible to create an executable,
 A qt-wspr.pro file is available for use with qmake and make
+There is NO CMakeLists.txt file
 
 -------------------------------------------------------------------------
 Copyrights

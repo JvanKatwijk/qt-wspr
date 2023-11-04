@@ -3,8 +3,8 @@
 ######################################################################
 TEMPLATE = app
 QT		+= widgets 
-CONFIG		+= console
-#CONFIG		-= console
+#CONFIG		+= console
+CONFIG		-= console
 TARGET		= qt-wspr
 QMAKE_CXXFLAGS	+= -std=c++14 
 QMAKE_CFLAGS	+= -flto -ffast-math 
