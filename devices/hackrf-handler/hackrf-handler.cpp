@@ -53,7 +53,7 @@ int	i;
         const char *libraryString = "libhackrf.dll";
         Handle          = LoadLibrary ((wchar_t *)L"libhackrf.dll");
 #else
-        const char *libraryString = "libhackrf.so";
+        const char *libraryString = "libhackrf.so.0";
         Handle          = dlopen (libraryString, RTLD_NOW);
 #endif
 
@@ -219,12 +219,11 @@ static
 int	callback (hackrf_transfer *transfer) {
 hackrfHandler *ctx = static_cast <hackrfHandler *>(transfer -> rx_ctx);
 uint8_t *p	= transfer -> buffer;
-int	i;
 RingBuffer<std::complex<float> > * q = ctx -> _I_Buffer;
 std::complex<float> localBuf [transfer -> valid_length / 2];
-int	cnt	= 0;
+static int cnt = 0;
 
-	for (i = 0; i < transfer -> valid_length / 2; i ++) {
+	for (int i = 0; i < transfer -> valid_length / 2; i ++) {
 	   int8_t re = (int8_t)(p [2 * i]);
 	   int8_t im = (int8_t)(p [2 * i + 1]);
 	   std::complex<float> temp  =
@@ -232,18 +231,16 @@ int	cnt	= 0;
 	                                   ((float)im) / 128.0);
 	   std::complex<float> tmp2;
 
-           if (ctx -> filter_1 -> Pass (temp, &tmp2))
-	      if (ctx -> filter_2 -> Pass (tmp2,  &(localBuf [cnt])))
-              if (localBuf [cnt] == localBuf [cnt])
-                 cnt ++;
-        }
-
-        ctx -> _I_Buffer -> putDataIntoBuffer (localBuf, cnt);
-        ctx -> sampleCnt += cnt;
-
-	if (ctx -> sampleCnt > ctx -> outputRate / 8) {
-	   ctx -> report_dataAvailable ();
-	   ctx -> sampleCnt = 0;
+           if (ctx -> filter_1 -> Pass (temp, &tmp2)) {
+	      if (ctx -> filter_2 -> Pass (tmp2,  &(localBuf [cnt]))) {
+	         cnt ++;
+	         if (cnt >= 1920) {
+                    ctx -> _I_Buffer -> putDataIntoBuffer (localBuf, cnt);
+	            ctx -> report_dataAvailable (cnt);
+	            cnt = 0;
+	         }
+	      }
+	   }
 	}
 	return 0;
 }
@@ -406,7 +403,7 @@ bool	hackrfHandler::load_hackrfFunctions () {
 	return true;
 }
 
-void	hackrfHandler::report_dataAvailable () {
-        emit dataAvailable (10);
+void	hackrfHandler::report_dataAvailable (int count) {
+        emit dataAvailable (count);
 }
 

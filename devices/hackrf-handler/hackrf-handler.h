@@ -91,7 +91,7 @@ public:
         int32_t         sampleCnt;
         int32_t         inputRate;
         int32_t         outputRate;
-        void            report_dataAvailable    ();
+        void            report_dataAvailable    (int);
         decimator	* filter_1;
         decimator	* filter_2;
 	hackrf_device	*theDevice;

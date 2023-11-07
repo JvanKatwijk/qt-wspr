@@ -1,7 +1,8 @@
 
 
 -----------------------------------------------------------------------------
-Qt-wspr, a WSPR listener with a Qt based front end
+Qt-wspr, a WSPR listener with a Qt based front end for use
+with SDRplay devices and/or hackrf
 -----------------------------------------------------------------------------
 
 ![overview](/qt-wspr-screen.png?raw=true)
