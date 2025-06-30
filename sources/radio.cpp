@@ -50,6 +50,7 @@
 #include        "device-handler.h"
 #include	"sdrplay-handler-v3.h"
 #include	"hackrf-handler.h"
+#include	"spyserver-client.h"
 //
 
 static
@@ -534,6 +535,7 @@ QStringList devices;
 
 	devices	+= "sdrplay-v3";
 	devices	+= "hackrf one";
+	devices	+= "spyServer";
 	devices	+= "quit";
 	deviceSelect. addList (devices);
 	int theIndex = -1;
@@ -565,6 +567,14 @@ deviceHandler	*RadioInterface::
 	if (s == "hackrf one") {
 	   try {
 	      return  new hackrfHandler (this, &inputBuffer,
+	                                            settings, 192000);
+	   } catch (int e) {
+	   }
+	}
+	else
+	if (s == "spyServer") {
+	   try {
+	      return new spyServer_client (this, &inputBuffer,
 	                                            settings, 192000);
 	   } catch (int e) {
 	   }

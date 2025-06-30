@@ -3,6 +3,8 @@
 -----------------------------------------------------------------------------
 Qt-wspr, a WSPR listener with a Qt based front end for use
 with SDRplay devices and/or hackrf
+
+New: qt-dab now supports connections to a spyServer
 -----------------------------------------------------------------------------
 
 ![overview](/qt-wspr-screen.png?raw=true)
@@ -105,7 +107,6 @@ read with OpenOffice or - when running Windows - the Windows variant
 of the software, as shown in the picture below
 
 ![overview](/results.png?raw=true)
-
 
 ------------------------------------------------------------------------
 Installers and an executable

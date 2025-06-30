@@ -21,8 +21,7 @@
  *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifndef	__QT_WSPR_H
-#define	__QT_WSPR_H
+#pragma once
 
 #include        <QMainWindow>
 #include        <QWheelEvent>
@@ -148,4 +147,3 @@ public slots:
 	void		sendString		(const QString &);
 };
 
-#endif
