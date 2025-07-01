@@ -113,7 +113,7 @@ struct timeval lTime;
 	         this, SLOT (switch_lfViewMode (int)));
 	connect (mouse_Inc, SIGNAL (valueChanged (int)),
 	         this, SLOT (set_mouseIncrement (int)));
-	connect (freqButton, SIGNAL (activated (const QString &)),
+	connect (freqButton, SIGNAL (textActivated (const QString &)),
 	         this, SLOT (set_band (const QString &)));
 	connect (quickMode_Button, SIGNAL (clicked ()),
 	         this, SLOT (handle_quickMode_Button ()));
@@ -261,6 +261,7 @@ void RadioInterface::closeEvent (QCloseEvent *event) {
 
 void	RadioInterface::set_band	(const QString &s) {
 int	freq	= arg_to_freq (s);
+	fprintf (stderr, "preparing a change to %d\n", freq);
 	changeRequest. freqChange	= true;
 	changeRequest. freqValue	= freq;
 	settings	-> setValue ("selected band", s);

@@ -6,7 +6,7 @@ QT		+= widgets  network
 #CONFIG		+= console
 CONFIG		-= console
 TARGET		= qt-wspr
-QMAKE_CXXFLAGS	+= -std=c++14 
+QMAKE_CXXFLAGS	+= -std=c++17 
 QMAKE_CFLAGS	+= -flto -ffast-math 
 QMAKE_CXXFLAGS	+= -flto -ffast-math 
 QMAKE_LFLAGS	+= -flto
@@ -113,8 +113,8 @@ CONFIG		+= spyServer
 LIBS		+= -L/usr/lib64
 LIBS		+= -L/lib64
 INCLUDEPATH	+= /usr/include/qt5/qwt
-LIBS		+= -lqwt-qt5 -lrt -lsndfile -lsamplerate -lportaudio -lusb-1.0 -lfftw3f -ldl
-LIBS		+= -lqwt-qt5 -lrt -lsndfile -lsamplerate -lportaudio -lusb-1.0 -lfftw3f -ldl
+LIBS		+= -lqwt-qt6 -lrt -lsndfile -lsamplerate -lportaudio -lusb-1.0 -lfftw3f -ldl
+#LIBS		+= -lqwt-qt5 -lrt -lsndfile -lsamplerate -lportaudio -lusb-1.0 -lfftw3f -ldl
 }
 
 win32 {
@@ -139,7 +139,7 @@ INCLUDEPATH += /usr/i686-w64-mingw32/sys-root/mingw/include/eigen3
 INCLUDEPATH += /usr/i686-w64-mingw32/sys-root/mingw/include/qt5/qwt
 INCLUDEPATH += /usr/local/include
 LIBS    += -L/usr/i686-w64-mingw32/sys-root/mingw/lib
-LIBS    += -lqwt-qt5
+LIBS    += -lqwt-qt6
 #LIBS    += -lqwt
 LIBS    += -lusb-1.0
 LIBS    += -lole32

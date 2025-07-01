@@ -94,7 +94,7 @@ QString iniFile		= QDir::homePath ();
  *	Before we connect control to the gui, we have to
  *	instantiate
  */
-        MyRadioInterface = new RadioInterface (&ISettings);
+	MyRadioInterface = new RadioInterface (&ISettings);
 	MyRadioInterface -> show ();
         a. exec ();
 /*
