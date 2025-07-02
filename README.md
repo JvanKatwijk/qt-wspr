@@ -5,6 +5,14 @@ Qt-wspr, a WSPR listener with a Qt based front end for use
 with SDRplay devices and/or hackrf
 
 New: qt-dab now supports connections to a spyServer
+Since my antenna equipment is less than optimal, I added
+a client for the spyServer to the set of input devices.
+
+Note however, that since MOST frequencies or SW frequencies, not
+supported by V3 dabsticks and the regular AIRspy, one needs to
+connect to the Airspy HF. It turns out there are a few spyServers
+connected to AIRspyHF devices.
+
 -----------------------------------------------------------------------------
 
 ![overview](/qt-wspr-screen.png?raw=true)

@@ -24,8 +24,8 @@
  *	want the interface with different devices (including  filehandling)
  *	to be transparent
  */
-#ifndef	__DEVICE_HANDLER__
-#define	__DEVICE_HANDLER__
+
+#pragma once
 
 #include	<stdint.h>
 #include	"constants.h"
@@ -61,5 +61,4 @@ protected:
 signals:
 		void	dataAvailable	(int);
 };
-#endif
 
